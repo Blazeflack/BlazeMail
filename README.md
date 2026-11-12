@@ -23,7 +23,6 @@ You send every message yourself; BlazeMail does not automatically send mail.
 
 Download the named addon ZIP from [Releases](https://github.com/Blazeflack/BlazeMail/releases)
 and extract the `BlazeMail/` folder into `Interface/AddOns`.
-Previous releases are available in the [original repository](https://github.com/Blazeflack/WoW-AddOns/releases).
 Log into each alt once with BlazeMail enabled, then visit a mailbox and open Send Mail.
 
 Open Characters / Settings with `/bm`, `/blazemail`, or the BlazeMail mailbox button.
