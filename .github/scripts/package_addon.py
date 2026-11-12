@@ -28,7 +28,7 @@ def package(tag, output_dir):
     files = []
     for name in filter(None, tracked):
         path = Path(name)
-        if any(part.lower() in {"test", "tests", "__pycache__", ".github", "images"} for part in path.parts):
+        if any(part.startswith(".") or part.lower() in {"test", "tests", "__pycache__", "images"} for part in path.parts):
             continue
         if path.name.lower() in {"api.json", "agents.md", ".gitignore", "development.md", "releasing.md"}:
             continue
@@ -70,7 +70,7 @@ def package(tag, output_dir):
         f"## Installation\n\nDownload **{archive.name}** and extract the **{addon}/** "
         "folder into `Interface/AddOns`.\n\n"
         "See `HOW_TO_USE.txt` inside the addon folder for usage instructions.\n\n"
-        f"## Changes\n\n{section.group(1).strip()}\n",
+        + changelog.strip() + "\n",
         encoding="utf-8",
     )
     if os.environ.get("GITHUB_OUTPUT"):

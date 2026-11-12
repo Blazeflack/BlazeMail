@@ -1,0 +1,14 @@
+package-as: BlazeMail
+enable-nolib-creation: no
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - images
+  - tests
+  - AGENTS.md
+  - DEVELOPMENT.md
+  - RELEASING.md
+  - api.json
