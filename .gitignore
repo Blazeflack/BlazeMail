@@ -6,3 +6,4 @@ Desktop.ini
 __pycache__/
 /tests/
 /api.json
+/DEVELOPMENT.md

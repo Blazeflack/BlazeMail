@@ -48,8 +48,8 @@ See [HOW_TO_USE.txt](HOW_TO_USE.txt) for the full guide.
 Designed for WoW Forever. Compatibility with other WoW versions is not guaranteed.
 No other addons are required.
 
-See [CHANGELOG.md](CHANGELOG.md), [RELEASING.md](RELEASING.md), and
-[DEVELOPMENT.md](DEVELOPMENT.md) for changes, release instructions and technical notes.
+See [CHANGELOG.md](CHANGELOG.md) for changes and
+[RELEASING.md](RELEASING.md) for release instructions.
 
 ## License
 
