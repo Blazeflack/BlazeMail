@@ -1,0 +1,32 @@
+name: Validate addon
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6.1.0
+        with:
+          persist-credentials: false
+      - name: Validate current addon package
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import re
+          import runpy
+          import sys
+          toc, = Path('.').glob('*.toc')
+          version = re.search(r'^## Version:\s*(\S+)\s*$', toc.read_text(), re.MULTILINE).group(1)
+          sys.argv = ['package_addon.py', f'v{version}', '--output-dir', os.environ['RUNNER_TEMP'] + '/package-check']
+          runpy.run_path('.github/scripts/package_addon.py', run_name='__main__')
+          PY
