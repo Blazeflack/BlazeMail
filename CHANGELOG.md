@@ -1,11 +1,3 @@
-# BlazeMail changelog
-
-Record future release changes here, newest first. Use `Unreleased` for pending
-changes, then move them under a version and date when preparing a release.
-Earlier versions have not been reconstructed.
-
-## Unreleased
-
 ## 1.4.2 - 2026-11-12
 
 ### Changed
