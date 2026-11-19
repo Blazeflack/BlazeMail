@@ -1,3 +1,8 @@
+## 1.4.3 - 2026-11-19
+
+### Added
+- Automatically fills an empty subject with `Mail from alt <Character Name>` when attaching items, while preserving any subject you have already entered.
+
 ## 1.4.2 - 2026-11-12
 
 ### Changed
