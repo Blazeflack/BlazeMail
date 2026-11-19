@@ -161,6 +161,23 @@ local function FillRecipient(name)
     SendMailNameEditBox:SetCursorPosition(0)
 end
 
+local function FillAttachmentSubject()
+    if not SendMailFrame or not SendMailFrame:IsShown()
+        or not SendMailSubjectEditBox or not addon.current
+        or not HasSendMailItem or not ATTACHMENTS_MAX_SEND then return end
+    local subject = SendMailSubjectEditBox:GetText()
+    if issecretvalue and issecretvalue(subject) then return end
+    if subject ~= "" then return end
+    for slot = 1, ATTACHMENTS_MAX_SEND do
+        local attached = HasSendMailItem(slot)
+        if issecretvalue and issecretvalue(attached) then return end
+        if attached then
+            SendMailSubjectEditBox:SetText("Mail from alt <" .. addon.current.name .. ">")
+            return
+        end
+    end
+end
+
 local function RestoreSentRecipient()
     local sent = pendingMail
     pendingMail = nil
@@ -620,6 +637,7 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("MAIL_SHOW")
 eventFrame:RegisterEvent("MAIL_CLOSED")
 eventFrame:RegisterEvent("MAIL_SEND_SUCCESS")
+eventFrame:RegisterEvent("MAIL_SEND_INFO_UPDATE")
 eventFrame:RegisterEvent("MAIL_FAILED")
 eventFrame:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" and name == addonName then
@@ -636,6 +654,12 @@ eventFrame:SetScript("OnEvent", function(_, event, name)
         if event == "PLAYER_LOGIN" then RegisterShortAlias() end
         if not addon.current then addon.DiscoverCharacter() end
         AttachPicker()
+    elseif event == "MAIL_SEND_INFO_UPDATE" then
+        local session = mailSession
+        -- Let Blizzard finish updating the attachment form first.
+        C_Timer.After(0, function()
+            if session == mailSession then FillAttachmentSubject() end
+        end)
     elseif event == "MAIL_SEND_SUCCESS" then
         RestoreSentRecipient()
     elseif event == "MAIL_FAILED" then
