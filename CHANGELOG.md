@@ -1,3 +1,8 @@
+## 1.4.4 - 2026-11-20
+
+### Fixed
+- Only fills an empty subject when the recipient matches an eligible saved alt, including when the recipient is selected after attaching items. Switching to another recipient clears the automatically filled subject while preserving any subject you have edited.
+
 ## 1.4.3 - 2026-11-19
 
 ### Added

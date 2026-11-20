@@ -5,6 +5,7 @@ local settingsTab
 local page, managing, pendingDelete = 1, false, nil
 local editingNote, positionKey
 local pendingMail
+local automaticSubject
 local mailSession, recipientRevision = 0, 0
 local PAGE_SIZE = 7
 local fonts
@@ -163,16 +164,35 @@ end
 
 local function FillAttachmentSubject()
     if not SendMailFrame or not SendMailFrame:IsShown()
-        or not SendMailSubjectEditBox or not addon.current
+        or not SendMailSubjectEditBox or not SendMailNameEditBox or not addon.current
         or not HasSendMailItem or not ATTACHMENTS_MAX_SEND then return end
     local subject = SendMailSubjectEditBox:GetText()
     if issecretvalue and issecretvalue(subject) then return end
+    if subject ~= automaticSubject then automaticSubject = nil end
+    local recipient = SendMailNameEditBox:GetText()
+    if issecretvalue and issecretvalue(recipient) then return end
+    recipient = recipient:match("^%s*(.-)%s*$"):lower()
+    local isAlt = false
+    for _, entry in ipairs(addon.GetCharacters(false)) do
+        if entry.character.name:lower() == recipient then
+            isAlt = true
+            break
+        end
+    end
+    if not isAlt then
+        if automaticSubject then
+            automaticSubject = nil
+            SendMailSubjectEditBox:SetText("")
+        end
+        return
+    end
     if subject ~= "" then return end
     for slot = 1, ATTACHMENTS_MAX_SEND do
         local attached = HasSendMailItem(slot)
         if issecretvalue and issecretvalue(attached) then return end
         if attached then
-            SendMailSubjectEditBox:SetText("Mail from alt <" .. addon.current.name .. ">")
+            automaticSubject = "Mail from alt <" .. addon.current.name .. ">"
+            SendMailSubjectEditBox:SetText(automaticSubject)
             return
         end
     end
@@ -591,7 +611,13 @@ local function AttachPicker()
     if picker or not SendMailFrame or not SendMailNameEditBox then return end
     SendMailNameEditBox:HookScript("OnTextChanged", function(_, userInput)
         if userInput then recipientRevision = recipientRevision + 1 end
+        FillAttachmentSubject()
     end)
+    if SendMailSubjectEditBox then
+        SendMailSubjectEditBox:HookScript("OnTextChanged", function(_, userInput)
+            if userInput then automaticSubject = nil end
+        end)
+    end
     -- Observe the actual submitted name, including manually entered recipients.
     -- This post-hook does not initiate or replace mail sending.
     hooksecurefunc("SendMail", function(recipient)
@@ -661,11 +687,13 @@ eventFrame:SetScript("OnEvent", function(_, event, name)
             if session == mailSession then FillAttachmentSubject() end
         end)
     elseif event == "MAIL_SEND_SUCCESS" then
+        automaticSubject = nil
         RestoreSentRecipient()
     elseif event == "MAIL_FAILED" then
         pendingMail = nil
         recipientRevision = recipientRevision + 1
     elseif event == "MAIL_SHOW" or event == "MAIL_CLOSED" then
+        automaticSubject = nil
         pendingMail = nil
         mailSession = mailSession + 1
         if event == "MAIL_SHOW" then AttachPicker() end
