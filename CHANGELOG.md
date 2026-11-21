@@ -1,3 +1,12 @@
+## 1.4.5 - 2026-11-21
+
+### Fixed
+- Restores the alt recipient list after the WoW Forever update that made realm names unavailable. Rulesets are now identified directly from game rules, including for newly registered characters.
+- Retries character identification when reopening the picker and shows a clear message if the ruleset is unavailable or unsupported.
+
+### Changed
+- Upgrades saved ruleset data to stable internal identifiers while preserving characters, notes, favorites, and settings.
+
 ## 1.4.4 - 2026-11-20
 
 ### Fixed
