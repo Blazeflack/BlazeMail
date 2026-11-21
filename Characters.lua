@@ -6,40 +6,58 @@ end
 
 -- Longest suffix first: RP PvP must not become ordinary PvP.
 local rulesets = { "RP PvP", "RP", "PvP", "PvE" }
+local rulesetKeys = { ["PvE"] = "pve", ["PvP"] = "pvp", ["RP"] = "rp", ["RP PvP"] = "rp_pvp" }
+local knownRulesets = { pve = true, pvp = true, rp = true, rp_pvp = true }
 function addon.NormalizeRuleset(connectionName)
     if not IsReadable(connectionName) or type(connectionName) ~= "string" then return end
     connectionName = connectionName:match("^%s*(.-)%s*$")
+    if knownRulesets[connectionName] then return connectionName end
     for _, ruleset in ipairs(rulesets) do
         if connectionName == ruleset or connectionName:sub(-(#ruleset + 1)) == " " .. ruleset then
-            return ruleset
+            return rulesetKeys[ruleset]
         end
     end
 end
 
 function addon.MigrateRulesets()
+    if (BlazeMailDB.schemaVersion or 0) >= 2 then return end
     -- Convert labels saved by earlier versions; live realm names use RP/RP PvP.
     local legacyRulesets = { ["Roleplay"] = "RP", ["PvP Roleplay"] = "RP PvP",
         ["Roleplay PvP"] = "RP PvP" }
     for _, character in pairs(BlazeMailDB.characters) do
-        local ruleset = legacyRulesets[character.ruleset] or addon.NormalizeRuleset(character.ruleset)
+        local ruleset = addon.NormalizeRuleset(legacyRulesets[character.ruleset] or character.ruleset)
         if ruleset then character.ruleset = ruleset end
     end
+    BlazeMailDB.schemaVersion = 2
+end
+
+function addon.GetCurrentRuleset()
+    local rules = Enum and Enum.GameRule
+    if not C_GameRules or type(C_GameRules.IsGameRuleActive) ~= "function" or not rules
+        or not rules.PvPRuleset or not rules.RPRuleset or not rules.HardcoreRuleset then return end
+    local pvp = C_GameRules.IsGameRuleActive(rules.PvPRuleset)
+    local rp = C_GameRules.IsGameRuleActive(rules.RPRuleset)
+    local hardcore = C_GameRules.IsGameRuleActive(rules.HardcoreRuleset)
+    if not IsReadable(pvp) or not IsReadable(rp) or not IsReadable(hardcore) then return end
+    if type(pvp) ~= "boolean" or type(rp) ~= "boolean" or type(hardcore) ~= "boolean" then return end
+    -- Hardcore mail compatibility has not been verified; keep it isolated.
+    if hardcore then return end
+    if rp then return pvp and "rp_pvp" or "rp" end
+    return pvp and "pvp" or "pve"
 end
 
 function addon.DiscoverCharacter()
+    addon.current = nil
     local firstName, surname = UnitNameUnmodified("player")
     local guid = UnitGUID("player")
     local _, class = UnitClass("player")
     local faction = UnitFactionGroup("player")
     local region = GetCurrentRegion()
-    -- Example verified in game: "CAMWOW EU4 Realm 7 PvE". The numbered
-    -- connection is not the ruleset; only its recognized suffix is relevant.
-    local ruleset = GetRealmName()
+    local ruleset = addon.GetCurrentRuleset()
     local values = { firstName, surname, guid, class, faction, region, ruleset }
     for i = 1, 7 do
         if not IsReadable(values[i]) then return end
     end
-    ruleset = addon.NormalizeRuleset(ruleset)
     if not firstName or firstName == "" or not guid or not class
         or (faction ~= "Horde" and faction ~= "Alliance")
         or not region or not ruleset or ruleset == "" then
@@ -70,7 +88,7 @@ function addon.GetCharacters(manage, query)
     local current = addon.current
     query = (query or ""):match("^%s*(.-)%s*$"):lower()
     for id, character in pairs(BlazeMailDB.characters) do
-        local eligible = current and character.ruleset == current.ruleset and (manage or (id ~= current.guid
+        local eligible = current and knownRulesets[character.ruleset] and character.ruleset == current.ruleset and (manage or (id ~= current.guid
             and character.region == current.region
             and character.faction == current.faction))
         if eligible and (query == "" or character.name:lower():find(query, 1, true)) then

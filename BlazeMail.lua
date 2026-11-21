@@ -548,7 +548,8 @@ Refresh = function()
             row:Hide()
         end
     end
-    popup.empty:SetText(popup.search:GetText() ~= "" and "No matching characters."
+    popup.empty:SetText(not addon.current and "Character ruleset unavailable or unsupported. Try reopening this window."
+        or popup.search:GetText() ~= "" and "No matching characters."
         or (managing and "No saved characters." or "No eligible alts yet. Log in on your alts first."))
     popup.empty:SetShown(#entries == 0)
     popup.page:SetText(page .. " / " .. pages)
@@ -570,6 +571,7 @@ Refresh = function()
 end
 
 OpenPicker = function(manage, besideMailbox)
+    if not addon.current then addon.DiscoverCharacter() end
     CreatePopup()
     popup.visibleSlots, popup.showPagination = nil, nil
     managing, pendingDelete, editingNote, page = manage, nil, nil, 1
@@ -678,7 +680,7 @@ eventFrame:SetScript("OnEvent", function(_, event, name)
         -- Wait until the normal addon-loading phase has completed, so aliases
         -- registered by addons loaded after BlazeMail are included in the check.
         if event == "PLAYER_LOGIN" then RegisterShortAlias() end
-        if not addon.current then addon.DiscoverCharacter() end
+        addon.DiscoverCharacter()
         AttachPicker()
     elseif event == "MAIL_SEND_INFO_UPDATE" then
         local session = mailSession
