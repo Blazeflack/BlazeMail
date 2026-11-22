@@ -1,3 +1,8 @@
+## 1.4.6 - 2026-11-22
+
+### Fixed
+- Fixed character management showing characters from other factions or regions. Both lists now consistently filter by faction, ruleset, and region.
+
 ## 1.4.5 - 2026-11-21
 
 ### Fixed
